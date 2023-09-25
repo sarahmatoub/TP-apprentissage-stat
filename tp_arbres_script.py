@@ -113,7 +113,7 @@ dt_gini = tree.DecisionTreeClassifier(criterion="entropy")
 
 data = rand_checkers(n1=114, n2=114, n3=114, n4=114, sigma=0.1)
 n_samples = len(data)
-X = data[:, :2] #X_train
+X = data[:, :2] 
 Y = data[:,2].astype(int)  #and be careful with the type (cast to int)
 
 dt_gini.fit(X, Y)
@@ -185,13 +185,17 @@ print("Scores with Gini criterion: ", scores_gini)
 # Q3 Afficher la classification obtenue en utilisant la profondeur qui minimise le pourcentage d’erreurs
 # obtenues avec l’entropie
 # la fonction frontière crée une grille très fine et calculer l'image de chaque point par la fonction, rajoute les points de X et Y et montrer si les points sont dans l'échantillon d'apprentissage ou pas
-# dt_entropy.max_depth = ... TODO
 
+# Créer un arbre de décision avec la meilleure profondeur pour l'entropie
+best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
+best_tree_entropy.fit(X_train, Y_train)
+# Afficher la classification obtenue avec la profondeur optimale (Entropy)
+plt.figure(figsize=(8, 8))
 plt.figure()
-frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X, Y, step=100) #l'évaluation en X de prédict, elle prend X pour le prédire
+frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X_train, Y_train, step=100, samples=True) #l'évaluation en X de prédict, elle prend X pour le prédire
 plt.title("Best frontier with entropy criterion")
 plt.draw()
-print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
+print("Best scores with entropy criterion: ", dt_entropy.score(X_train, Y_train))
 
 #%%
 # Q4.  Exporter la représentation graphique de l'arbre: Need graphviz installed
