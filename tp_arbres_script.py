@@ -182,9 +182,7 @@ print("Scores with entropy criterion: ", scores_entropy)
 print("Scores with Gini criterion: ", scores_gini)
 
 #%%
-# Q3 Afficher la classification obtenue en utilisant la profondeur qui minimise le pourcentage d’erreurs
-# obtenues avec l’entropie
-# la fonction frontière crée une grille très fine et calculer l'image de chaque point par la fonction, rajoute les points de X et Y et montrer si les points sont dans l'échantillon d'apprentissage ou pas
+# Q3 Afficher la classification obtenue en utilisant la profondeur qui minimise le pourcentage d’erreurs obtenues avec l’entropie
 
 # Créer un arbre de décision avec la meilleure profondeur pour l'entropie
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
@@ -240,18 +238,31 @@ scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
 plt.figure(figsize=(15, 10))
 
-#for i in range(dmax):
-    # TODO
+for i in range(dmax):
+    
+    # Créer un arbre de décision avec une profondeur maximale variable (entropy)
+    dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=i + 1)
+    dt_entropy.fit(X_new, Y_new)
+    scores_entropy[i] = 1 - dt_entropy.score(X_new, Y_new)
 
-#%%
-
+    dt_gini = DecisionTreeClassifier(criterion="gini", max_depth=i + 1)
+    dt_gini.fit(X_new, Y_new)
+    scores_gini[i] = 1 - dt_gini.score(X_new, Y_new)
+    
+    plt.subplot(3, 4, i + 1)
+    frontiere(lambda x: dt_gini.predict(x.reshape((1, -1))), X_new, Y_new, step=50, samples=False)
 
 plt.figure()
-# plt.plot(...)  # TODO
+plt.plot(range(1, dmax + 1), scores_entropy, label="Entropy")
+plt.plot(range(1, dmax + 1), scores_gini, label="Gini")
 plt.xlabel('Max depth')
-plt.ylabel('Accuracy Score')
+plt.ylabel('Error Rate')
 plt.title("Testing error")
-print(scores_entropy)
+plt.legend()
+plt.show()
+
+print("Proportion d'erreurs sur le nouvel échantillon (Entropy):", scores_entropy)
+print("Proportion d'erreurs sur le nouvel échantillon (Gini):", scores_gini)
 
 #%%
 # Q6. même question avec les données de reconnaissances de texte 'digits'
@@ -262,15 +273,52 @@ digits = datasets.load_digits()
 n_samples = len(digits.data)
 # use test_train_split rather.
 
-# X = digits.data[:n_samples // 2]  # digits.images.reshape((n_samples, -1))
-# Y = digits.target[:n_samples // 2]
-# X_test = digits.data[n_samples // 2:]
-# Y_test = digits.target[n_samples // 2:]
+X = digits.data[:n_samples // 2]  # digits.images.reshape((n_samples, -1))
+Y = digits.target[:n_samples // 2]
+X_test = digits.data[n_samples // 2:]
+Y_test = digits.target[n_samples // 2:]
 
 # TODO
 
+#%%
 # Q7. estimer la meilleur profondeur avec un cross_val_score
 
-# TODO
+# Importer les bibliothèques nécessaires
+from sklearn import datasets
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
 
+
+# Créer une liste de profondeurs maximales à tester
+max_depths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Initialiser une liste pour stocker les scores de validation croisée
+cv_scores = []
+
+# Tester chaque profondeur maximale
+for depth in max_depths:
+    # Initialiser et entraîner l'arbre de décision avec le critère d'Entropy
+    tree_classifier = DecisionTreeClassifier(criterion="entropy", max_depth=depth, random_state=0)
+    
+    # Effectuer une validation croisée avec 5 plis
+    scores = cross_val_score(tree_classifier, X, Y, cv=5)
+    
+    # Calculer la moyenne des scores de validation croisée
+    mean_score = scores.mean()
+    
+    # Ajouter le score moyen à la liste des scores
+    cv_scores.append(mean_score)
+
+# Trouver la meilleure profondeur maximale avec le score le plus élevé
+best_depth_index = cv_scores.index(max(cv_scores))
+best_depth = max_depths[best_depth_index]
+
+
+for depth, score in zip(max_depths, cv_scores):
+    print("Profondeur maximale = {}, Score de validation croisée moyen = {:.4f}".format(depth, score))
+    
+print("Meilleure profondeur maximale (Entropy) = {}, Score de validation croisée moyen = {:.4f}".format(best_depth, max(cv_scores)))
+
+#%% 
+# Q8 afficher la courbe d’apprentissage
 
