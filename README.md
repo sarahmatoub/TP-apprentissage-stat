@@ -6,7 +6,7 @@ contact : sarah.matoub@etu.umontpellier.fr
 
 Ce dépot git contient les fichiers suivants :
 
-- Le fichier `tp_arbre_source.py` contenant les codes *Python* de ce TP.
+- Les fichiers `tp_arbre_script.py` et `tp_arbre_source.py` contenant respectivement les codes **Python** de ce TP ainsi que les codes source des fonctions utilisées.
 
 - Le fichier `.gitignore` afin de garder ce dépôt propre.
 
