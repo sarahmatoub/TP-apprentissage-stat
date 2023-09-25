@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rc
-
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn import tree, datasets
 from tp_arbres_source import (rand_gauss, rand_bi_gauss, rand_tri_gauss,
                               rand_checkers, rand_clown,
@@ -62,7 +63,7 @@ sigma2 = 5.
 data3 = rand_clown(n1, n2, sigma1, sigma2)
 
 
-n1 = 114  # XXX : change
+n1 = 114 
 n2 = 114
 n3 = 114
 n4 = 114
@@ -104,11 +105,6 @@ plot_2d(data4[:, :2], data4[:, 2], w=None)
 # classification comme l'indice de gini ou l'entropie, avec la
 # fonction 'DecisionTreeClassifier' du module 'tree'.
 
-x1=tree.DecisionTreeClassifier(criterion="gini") #on instentie de type decision tree
-x2=tree.DecisionTreeClassifier(criterion="entropy")
-
-
-#%%
 dt_entropy = tree.DecisionTreeClassifier(criterion="gini")
 dt_gini = tree.DecisionTreeClassifier(criterion="entropy")
 
@@ -118,9 +114,7 @@ dt_gini = tree.DecisionTreeClassifier(criterion="entropy")
 data = rand_checkers(n1=114, n2=114, n3=114, n4=114, sigma=0.1)
 n_samples = len(data)
 X = data[:, :2] #X_train
-Y = data[:,2].astype(int)  #and careful with the type (cast to int)
-
-#cela calcule l'ensemble de niveau, un arbre de décision
+Y = data[:,2].astype(int)  #and be careful with the type (cast to int)
 
 dt_gini.fit(X, Y)
 dt_entropy.fit(X, Y) 
@@ -136,31 +130,51 @@ print(dt_entropy.get_params())
 print(dt_entropy.score(X, Y))
 
 
-
 #%%
 # Afficher les scores en fonction du paramètre max_depth
+# Créez un ensemble de test
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 dmax = 12
 scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
 
+best_depth_entropy = None
+best_score_entropy = 0.0
+
+best_depth_gini = None
+best_score_gini = 0.0
+
+
 plt.figure(figsize=(15, 10))
 for i in range(dmax):
-    dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth= dmax)
-    
-    scores_entropy[i] = dt_entropy.score(X, Y)
-
-    dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth= dmax)
-    # ...
-    # scores_gini[i] = TODO
+    # Arbre de décision avec le critère entropy
+    dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1, random_state = 0)
+    dt_entropy.fit(X_train, Y_train)
+    Y_pred_entropy = dt_entropy.predict(X_test)
+    scores_entropy[i] = accuracy_score(Y_test, Y_pred_entropy)
+    if scores_entropy[i] > best_score_entropy:
+        best_score_entropy = scores_entropy[i]
+        best_depth_entropy = i + 1
+        
+    # Arbre de décision avec le critère gini
+    dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i + 1, random_state = 0)
+    dt_gini.fit(X_train, Y_train)
+    Y_pred_gini = dt_gini.predict(X_test)
+    scores_gini[i] = accuracy_score(Y_test, Y_pred_gini)
+    if scores_gini[i] > best_score_gini
+    best_score_gini = scores_gini[i]
+    best_depth_gini = i + 1
 
     plt.subplot(3, 4, i + 1)
     frontiere(lambda x: dt_gini.predict(x.reshape((1, -1))), X, Y, step=50, samples=False)
+    plt.title(f'Depth{ i + 1 }')
 plt.draw()
 
 
 plt.figure()
-# plt.plot(X,Y)  # TODO
+plt.plot(range(1, dmax + 1), 1 - scores_entropy, label="Accuracy score (Entropie)")
+plt.plot(range(1, dmax + 1), 1 - scores_gini, label="Accuracy score (Gini)")
 plt.xlabel('Max depth')
 plt.ylabel('Accuracy Score')
 plt.draw()
@@ -196,7 +210,7 @@ scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
 plt.figure(figsize=(15, 10))
 
-for i in range(dmax):
+#for i in range(dmax):
     # TODO
 
 #%%
