@@ -16,8 +16,43 @@ Ce dépot git contient les fichiers suivants :
 
 ## Lancement de la mission
 
-Avant de compiler le fichier `tp2_sarahmatoub.qmd` assurez vous d'avoir installé les librairies nécessaires à partir du fichier `requirements.txt` , via la commande `pip` suivante :
+Ce TP a été effectué sur **VsCode** , avant de pouvoir
+expérimenter mon code, vous devez d'abord vous assurer d'avoir un
+environnement de travail fonctionnel (si cela est déja fait vous pouvez passer
+à la deuxième étape).
+
+### Première étape :
+
+- Installer `VsCode` en suivant les instructions sur [ce lien](https://code.visualstudio.com/download).
+
+- Installer l'extension `Python` en suivant les instructions sur [ce lien](https://www.pythontutorial.net/getting-started/setup-visual-studio-code-for-python/).
+
+- Enfin, installez `Quarto` pour pouvoir compiler le fichier `.qmd` en suivant les instructions sur [ce lien](https://quarto.org/docs/get-started/).
+
+### Deuxième étape :
+
+- Ouvrez un terminal et clônez le référentiel via la commande suivante :
 
 ```bash
-$ pip install -r requirements.txt
+$ git clone https://github.com/sarahmatoub/TP-apprentissage-stat.git
+```
+
+- Créez un nouvel environnement de travail nommé "tp_env":
+
+```bash
+$ conda create -n tp_env python=3.9.12
+```
+
+- Après avoir basculé dans votre nouvel environnement python, téléchargez les
+  modules présents dans le fichier requirements.txt via la commande `pip`
+  suivante:
+
+```bash
+$ pip install -r requirements.txt 
 ``` 
+
+- Compilez le fichier `tp2_sarahmatoub.qmd` à l'aide de la commande :
+
+```bash
+$ quarto render tp2_sarahmatoub.qmd --to html
+```
