@@ -201,13 +201,39 @@ print("Best scores with entropy criterion: ", dt_entropy.score(X_train, Y_train)
 # Q4.  Exporter la représentation graphique de l'arbre: Need graphviz installed
 # Voir https://scikit-learn.org/stable/modules/tree.html#classification
 
-# TODO
+from sklearn.tree import export_graphviz
+import graphviz
+
+best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
+best_tree_entropy.fit(X_train, Y_train)
+# On exporte l'arbre au format DOT
+donnes = export_graphviz(best_tree_entropy, out_file = None, filled = True, rounded = True, special_characters = True)
+# On crée un objet Graphviz à partir du fichier DOT
+graph = graphviz.Source(donnes)
+
+# Enregistrer le graphique au format PDF
+output_file_path = "arbre_decision.pdf"
+graph.render(output_file_path)
 
 #%%
 # Q5 :  Génération d'une base de test
-# data_test = rand_checkers(... TODO
-# X_test = ...
-# Y_test = ...
+# Créer un nouvel échantillon de test avec 160 données (40 de chaque classe)
+new_data = rand_checkers(n1=40, n2=40, n3=40, n4=40, sigma=0.1)
+
+# Séparer les caractéristiques et les étiquettes
+X_new = new_data[:, :2]
+Y_new = new_data[:, 2].astype(int)
+
+# Évaluer les modèles sur le nouvel échantillon de test
+error_rate_entropy = 1 - best_tree_entropy.score(X_new, Y_new)
+
+best_tree_gini = DecisionTreeClassifier(criterion="gini", max_depth=best_depth_gini, random_state=0)
+best_tree_gini.fit(X_new, Y_new)
+
+error_rate_gini = 1 - best_tree_gini.score(X_new, Y_new)
+
+print("Proportion d'erreurs sur le nouvel échantillon (Entropy): {:.2f}%".format(error_rate_entropy * 100))
+print("Proportion d'erreurs sur le nouvel échantillon (Gini): {:.2f}%".format(error_rate_gini * 100))
 
 dmax = 12
 scores_entropy = np.zeros(dmax)

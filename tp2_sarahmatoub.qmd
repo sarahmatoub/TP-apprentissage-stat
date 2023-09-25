@@ -68,7 +68,7 @@ plt.grid(True)
 plt.show()
 ```
 
-NB : rajouter 
+
 
 ```{python}
 dt_entropy = tree.DecisionTreeClassifier(criterion="gini")
@@ -169,7 +169,7 @@ print("Best accuracy with Gini: ", best_score_gini)
 
 ```{python}
 #| code-fold: true
-
+random.seed(1234)
 # Créer un arbre de décision avec la meilleure profondeur pour l'entropie
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
 best_tree_entropy.fit(X_train, Y_train)
@@ -190,10 +190,16 @@ plt.show()
 from sklearn.tree import export_graphviz
 import graphviz
 
-# Créer un arbre de décision avec la meilleure profondeur pour l'entropie
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
 best_tree_entropy.fit(X_train, Y_train)
+# On exporte l'arbre au format DOT
+donnes = export_graphviz(best_tree_entropy, out_file = None, filled = True, rounded = True, special_characters = True)
+# On crée un objet Graphviz à partir du fichier DOT
+graph = graphviz.Source(donnes)
 
+# Enregistrer le graphique au format PDF
+output_file_path = "arbre_decision.pdf"
+graph.render(output_file_path)
 ```
 
 ### Question 5
