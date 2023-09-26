@@ -206,6 +206,10 @@ print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
 from sklearn.tree import export_graphviz
 import graphviz
 
+# Si ce code ne fonctionne pas, installez Graphviz en suivant le lien https://www.graphviz.org/download/ puis décommenter les deux lignes suivantes
+#import os
+#os.environ["PATH"] += os.pathsep + 'D:/Program Files (x86)/Graphviz2.38/bin/'
+
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
 best_tree_entropy.fit(X, Y)
 # On exporte l'arbre au format DOT

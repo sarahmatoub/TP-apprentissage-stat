@@ -1,7 +1,7 @@
 ---
 title: "TP 2 : Arbres"
 author: "Sarah Matoub"
-date: "20 Septembre 2023"
+date: "28 Septembre 2023"
 toc: true
 format:
   html:
@@ -14,7 +14,7 @@ execute:
 
 ## Mesure d'homogénéité en régression
 
-Dans le contexte de la régression, où l'objectif est de prédire une valeur numérique plutôt que de classer des données en catégories, une mesure d'homogénéité couramment utilisée est **l'erreur quadratique moyenne' (Mean Squared Error - MSE)**.
+Dans le contexte de la régression, où l'objectif est de prédire une valeur numérique plutôt que de classer des données en catégories, une mesure d'homogénéité couramment utilisée est **l'erreur quadratique moyenne (Mean Squared Error - MSE)**.
 
  La MSE est une mesure de la distance entre les valeurs prédites et les valeurs réelles,elle calcule la moyenne des carrés des erreurs entre les valeurs prédites et les valeurs réelles. 
  
@@ -93,7 +93,7 @@ plt.show()
 Nous allons à présent construire nos arbres de décision à l'aide des critères de l'entropie et l'indice de gini, avec l'attribu `criterion`:
 
 ```{python}
-
+#| code-fold: true
 dt_entropy = tree.DecisionTreeClassifier(criterion="gini")
 dt_gini = tree.DecisionTreeClassifier(criterion="entropy")
 
@@ -197,7 +197,8 @@ print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
 
 ### Question 4
 
-Nous allons générer un nouvel ensemble de données contenant n = 160 échantillons, répartis en 40 exemplaires de chaque classe à l'aide de la fonction `rand_checkers()`. Ensuite, nous évaluerons les arbres de décision préalablement entraînés en calculant la proportion d'erreurs commises sur cet échantillon de test:
+Nous allons utiliser la fonction `export_graphviz()` du module `tree` pour exporter le graphique de l'arbre obtenu dans la question précédente au format PDF. 
+Le fichier exporté sera nommé *best_tree_entropy.pdf* et sera enregistré dans le dossier **Plots** du dépôt Git de ce TP :
 
 ```{python}
 #| code-fold: true
@@ -207,20 +208,25 @@ from sklearn.tree import export_graphviz
 import graphviz
 from graphviz import Source
 
-#best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
-#best_tree_entropy.fit(X_train, Y_train)
+import os
+os.environ["PATH"] += os.pathsep + 'D:/Program Files (x86)/Graphviz2.38/bin/'
 
-#tree.export_graphviz(best_tree_entropy, out_file='tree.dot')
+best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
+best_tree_entropy.fit(X, Y)
+# On exporte l'arbre au format DOT
+donnes = export_graphviz(best_tree_entropy)
+# On crée un objet Graphviz à partir du fichier DOT
+graph = graphviz.Source(donnes)
+graph.render("best_tree_entropy", format = "pdf")
 ```
 
 
-COMMENTER ET REGLER PB D'EXPORTATION
-
 ### Question 5
+
+Nous allons générer un nouvel ensemble de données contenant n = 160 échantillons, répartis en 40 exemplaires de chaque classe à l'aide de la fonction `rand_checkers()`. Ensuite, nous évaluerons les arbres de décision préalablement entraînés en calculant la proportion d'erreurs commises sur cet échantillon de test:
 
 ```{python}
 #| code-fold: true
-
 # Créer un nouvel échantillon de test avec 160 données (40 de chaque classe)
 new_data = rand_checkers(n1=40, n2=40, n3=40, n4=40, sigma=0.1)
 
@@ -272,11 +278,14 @@ print("Proportion d'erreurs sur le nouvel échantillon (Gini): {:.2f}%".format(e
 
 ```
 
+On remarque que la proportion d'erreurs est nettement plus élevée pour l'arbre de décision basé sur l'entropie que pour celui basé sur l'indice de Gini, suggérant ainsi que l'arbre basé sur gini offre une précision supérieure lors de la prédiction des échantillons de test par rapport à l'arbre basé sur l'entropie.
+
 ### Question 6
 
 Nous allons reprendre ce qui a été fait précédement avec le dataset **DIGITS** :
 
 ```{python}
+#| code-fold: true
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 # Import the digits dataset
@@ -342,11 +351,10 @@ print("Gini criterion scores : ", scores_gini)
 
 ### Question 7
 
-Utiliser la fonction `sklearn.cross_validation.cross_val_score()` et tester la sur le jeu de données
-**digits** en faisant varier la profondeur de l’arbre de décision. On pourra se servir de cette fonction
-pour choisir la profondeur de l’arbre :
+Nous allons utiliser la fonction `sklearn.cross_validation.cross_val_score()` pour évaluer ses performances sur le jeu de données **digits** en ajustant la profondeur de l'arbre de décision de manière variée. Cette fonction sera utile pour déterminer la profondeur optimale de l'arbre :
 
 ```{python}
+#| code-fold: true
 from sklearn.model_selection import cross_val_score
 
 # Profondeurs maximales à tester
