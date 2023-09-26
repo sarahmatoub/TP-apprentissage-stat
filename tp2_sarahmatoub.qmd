@@ -394,6 +394,7 @@ Nous allons afficher la courbe d’apprentissage (en : learning curve) pour les 
 décisions sur le même jeu de données :
 
 ```{python}
+#| code-fold: true
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import train_test_split
 
