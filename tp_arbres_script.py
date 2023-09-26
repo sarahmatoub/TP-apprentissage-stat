@@ -373,3 +373,41 @@ print("Meilleure profondeur maximale (Entropy) = {}, Score de validation croisé
 #%% 
 # Q8 afficher la courbe d’apprentissage
 
+from sklearn.model_selection import learning_curve
+from sklearn.model_selection import train_test_split
+
+# Charger l'ensemble de données digits
+digits = datasets.load_digits()
+X = digits.data
+Y = digits.target
+
+# Diviser l'ensemble de données en ensembles d'entraînement (80%) et de test (20%)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+# Créer un classificateur d'arbre de décision avec la meilleure profondeur
+dt = DecisionTreeClassifier(criterion='entropy', max_depth=best_depth)
+
+# Calculer la courbe d'apprentissage
+n_samples, train_scores, test_scores = learning_curve(dt, X_train, Y_train, cv=5)
+
+# Calculer les moyennes et les écarts types des scores
+train_scores_mean = np.mean(train_scores, axis=1)
+train_scores_std = np.std(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+test_scores_std = np.std(test_scores, axis=1)
+
+# Tracer la courbe d'apprentissage
+plt.figure()
+plt.grid()
+plt.fill_between(n_samples, train_scores_mean - 1.96 * train_scores_std,
+                 train_scores_mean + 1.96 * train_scores_std, alpha=0.1, label="Train")
+plt.fill_between(n_samples, test_scores_mean - 1.96 * test_scores_std,
+                 test_scores_mean + 1.96 * test_scores_std, alpha=0.1, label="Test")
+plt.plot(n_samples, train_scores_mean, 'o-', label="Score d'entraînement")
+plt.plot(n_samples, test_scores_mean, 'o-', label="Score de validation croisée")
+plt.legend(loc="lower right")
+plt.xlabel("Taille de l'échantillon d'entraînement")
+plt.ylabel("Accuracy")
+plt.title("Courbe d'apprentissage pour le meilleur arbre de décision")
+plt.show()
+
