@@ -14,6 +14,8 @@ Ce dépot git contient les fichiers suivants :
 
 - Un fichier `requirements.txt` contenant les librairies nécessaires pour ce TP.
 
+- Le dossier `Plots` contenant la figure obtenue à la question 4 de ce TP.
+
 ## Lancement de la mission
 
 Ce TP a été effectué sur **VsCode** , avant de pouvoir
