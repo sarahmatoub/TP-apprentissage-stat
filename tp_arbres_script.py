@@ -3,6 +3,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import random
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
 from matplotlib import rc
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -132,7 +135,7 @@ print(dt_entropy.score(X, Y))
 #%%
 # Afficher les scores en fonction du paramètre max_depth
 # Créez un ensemble de test
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+#X_test, Y_test, X_train, Y_train = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 dmax = 12
 scores_entropy = np.zeros(dmax)
@@ -149,20 +152,20 @@ plt.figure(figsize=(15, 10))
 for i in range(dmax):
     # Arbre de décision avec le critère entropy
     dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1, random_state = 0)
-    dt_entropy.fit(X_train, Y_train)
-    Y_pred_entropy = dt_entropy.predict(X_test)
-    scores_entropy[i] = accuracy_score(Y_test, Y_pred_entropy)
+    dt_entropy.fit(X, Y)
+    Y_pred_entropy = dt_entropy.predict(X)
+    scores_entropy[i] = accuracy_score(Y, Y_pred_entropy)
     if scores_entropy[i] > best_score_entropy:
         best_score_entropy = scores_entropy[i]
         best_depth_entropy = i + 1
         
     # Arbre de décision avec le critère gini
     dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i + 1, random_state = 0)
-    dt_gini.fit(X_train, Y_train)
-    Y_pred_gini = dt_gini.predict(X_test)
-    scores_gini[i] = accuracy_score(Y_test, Y_pred_gini)
-    if scores_gini[i] > best_score_gini
-    best_score_gini = scores_gini[i]
+    dt_gini.fit(X, Y)
+    Y_pred_gini = dt_gini.predict(X)
+    scores_gini[i] = accuracy_score(Y, Y_pred_gini)
+    if scores_gini[i] > best_score_gini:
+        best_score_gini = scores_gini[i]
     best_depth_gini = i + 1
 
     plt.subplot(3, 4, i + 1)
@@ -170,29 +173,31 @@ for i in range(dmax):
     plt.title(f'Depth{ i + 1 }')
 plt.draw()
 
-
+#%%
 plt.figure()
 plt.plot(range(1, dmax + 1), 1 - scores_entropy, label="Accuracy score (Entropie)")
 plt.plot(range(1, dmax + 1), 1 - scores_gini, label="Accuracy score (Gini)")
+plt.legend()
 plt.xlabel('Max depth')
 plt.ylabel('Accuracy Score')
+plt.title("Accuracy score as a function of max depth")
 plt.draw()
 print("Scores with entropy criterion: ", scores_entropy)
 print("Scores with Gini criterion: ", scores_gini)
 
 #%%
 # Q3 Afficher la classification obtenue en utilisant la profondeur qui minimise le pourcentage d’erreurs obtenues avec l’entropie
-
+random.seed(1234)
 # Créer un arbre de décision avec la meilleure profondeur pour l'entropie
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
-best_tree_entropy.fit(X_train, Y_train)
+best_tree_entropy.fit(X, Y)
 # Afficher la classification obtenue avec la profondeur optimale (Entropy)
 plt.figure(figsize=(8, 8))
 plt.figure()
-frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X_train, Y_train, step=100, samples=True) #l'évaluation en X de prédict, elle prend X pour le prédire
+frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X, Y, step=100, samples=True) #l'évaluation en X de prédict, elle prend X pour le prédire
 plt.title("Best frontier with entropy criterion")
 plt.draw()
-print("Best scores with entropy criterion: ", dt_entropy.score(X_train, Y_train))
+print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
 
 #%%
 # Q4.  Exporter la représentation graphique de l'arbre: Need graphviz installed
@@ -202,15 +207,12 @@ from sklearn.tree import export_graphviz
 import graphviz
 
 best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
-best_tree_entropy.fit(X_train, Y_train)
+best_tree_entropy.fit(X, Y)
 # On exporte l'arbre au format DOT
-donnes = export_graphviz(best_tree_entropy, out_file = None, filled = True, rounded = True, special_characters = True)
+donnes = export_graphviz(best_tree_entropy)
 # On crée un objet Graphviz à partir du fichier DOT
 graph = graphviz.Source(donnes)
-
-# Enregistrer le graphique au format PDF
-output_file_path = "arbre_decision.pdf"
-graph.render(output_file_path)
+graph.render("best_tree_entropy", format = "pdf")
 
 #%%
 # Q5 :  Génération d'une base de test
@@ -244,7 +246,7 @@ for i in range(dmax):
     dt_entropy.fit(X_new, Y_new)
     scores_entropy[i] = 1 - dt_entropy.score(X_new, Y_new)
 
-    dt_gini = DecisionTreeClassifier(criterion="gini", max_depth=i + 1)
+    dt_gini = DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
     dt_gini.fit(X_new, Y_new)
     scores_gini[i] = 1 - dt_gini.score(X_new, Y_new)
     
@@ -265,33 +267,83 @@ print("Proportion d'erreurs sur le nouvel échantillon (Gini):", scores_gini)
 
 #%%
 # Q6. même question avec les données de reconnaissances de texte 'digits'
-
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
 # Import the digits dataset
 digits = datasets.load_digits()
 
+#X = digits.data
+#Y = digits.target 
+
 n_samples = len(digits.data)
-# use test_train_split rather.
 
-X = digits.data[:n_samples // 2]  # digits.images.reshape((n_samples, -1))
-Y = digits.target[:n_samples // 2]
-X_test = digits.data[n_samples // 2:]
-Y_test = digits.target[n_samples // 2:]
+# Diviser l'ensemble de données en ensembles d'entraînement et de test (80% - 20%)
+#X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
-# TODO
+digits.images.reshape((n_samples, -1))
+X_test = digits.data[:n_samples*8 // 10]  # digits.images.reshape((n_samples, -1))
+Y_test = digits.target[:n_samples*8 // 10]
+X_train = digits.data[n_samples*8 // 10:]
+Y_train = digits.target[n_samples*8 // 10:]
+
+dmax = 12
+scores_entropy = np.zeros(dmax)
+scores_gini = np.zeros(dmax)
+
+for i in range(dmax):
+    # Arbre de décision pour l'entropie
+    dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
+    dt_entropy.fit(X_train, Y_train)
+    scores_entropy = dt_entropy.score(X_train, Y_train)
+    
+    #Arbre de décision pour gini
+    dt_gini =  DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
+    dt_gini.fit(X_train, Y_train)
+    scores_entropy = dt_entropy.score(X_train, Y_train)
+    
+plt.figure()
+plt.plot(scores_entropy, label = "score entropy")
+plt.plot(scores_gini, label = "score gini")
+plt.legend()
+plt.xlabel("Max Depth")
+plt.ylabel("Accuracy score")
+plt.draw()
+
+#%%
+# Let's see what happens
+dmax = 20
+scores_entropy = np.zeros(dmax)
+scores_gini = np.zeros(dmax)
+
+for i in range(dmax):
+    dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
+    dt_entropy.fit(X_train,Y_train)
+    scores_entropy[i] = dt_entropy.score(X_test, Y_test)
+
+    dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i+1)
+    dt_gini.fit(X_train,Y_train)
+    scores_gini[i] = dt_gini.score(X_test,Y_test)
+
+
+plt.figure()
+plt.plot(scores_entropy, label="entropy")
+plt.plot(scores_gini, label="gini")
+plt.legend()
+plt.xlabel("Max Depth")
+plt.ylabel("Accuracy Score")
+plt.draw()
+print("Entropy criterion scores : ", scores_entropy)
+print("Gini criterion scores : ", scores_gini)
 
 #%%
 # Q7. estimer la meilleur profondeur avec un cross_val_score
 
-# Importer les bibliothèques nécessaires
-from sklearn import datasets
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
 
+# Profondeurs maximales à tester
+max_depths = np.arange(1, 16, 1)
 
-# Créer une liste de profondeurs maximales à tester
-max_depths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-# Initialiser une liste pour stocker les scores de validation croisée
+# scores de validation croisée
 cv_scores = []
 
 # Tester chaque profondeur maximale
