@@ -194,7 +194,7 @@ best_tree_entropy.fit(X, Y)
 # Afficher la classification obtenue avec la profondeur optimale (Entropy)
 plt.figure(figsize=(8, 8))
 plt.figure()
-frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X, Y, step=100, samples=True) #l'évaluation en X de prédict, elle prend X pour le prédire
+frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X, Y, step=100, samples=True) 
 plt.title("Best frontier with entropy criterion")
 plt.draw()
 print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
@@ -311,7 +311,7 @@ plt.draw()
 
 #%%
 # Let's see what happens
-dmax = 20
+dmax = 15
 scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
 

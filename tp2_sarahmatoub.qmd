@@ -12,27 +12,45 @@ execute:
   warning: false
 ---
 
-## Classification avec les arbres
+## Mesure d'homogénéité en régression
 
-### Question 1
-Dans le cadre de la régression (i.e., quand on cherche à prédire une valeur numérique pour Y et non
-une classe), proposez une autre mesure d’homogénéité. Justifier votre choix.
+Dans le contexte de la régression, où l'objectif est de prédire une valeur numérique plutôt que de classer des données en catégories, une mesure d'homogénéité couramment utilisée est **l'erreur quadratique moyenne' (Mean Squared Error - MSE)**.
+
+ La MSE est une mesure de la distance entre les valeurs prédites et les valeurs réelles,elle calcule la moyenne des carrés des erreurs entre les valeurs prédites et les valeurs réelles. 
+ 
+ Plus la MSE est faible, plus le modèle de régression est précis, car cela signifie que les prédictions sont proches des valeurs réelles. 
+ 
+ Elle est définie par l'équation :
+
+ $$
+ MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+ $$
+
+où :
+
+$n$ est la taille de l'échantillon.
+
+$y_i$ est la valeur réelle de la cible pour l'échantillon $i$.
+
+$\hat{y}_i$ est la valeur prédite de la cible pour l'échantillon $i$.
+
+C'est une mesure d'homogénéité appropriée pour évaluer la performance des modèles de régression, car elle quantifie la précision des prédictions en termes d'erreurs entre les valeurs prédites et les valeurs réelles. Elle est largement utilisée en régression en raison de sa pertinence et de sa facilité d'interprétation.
+
+Dans la suite de ce TP nous allons considérer le cas de la classification.
+
+## Classification avec les arbres
 
 Avec scikit-learn on peut construire des arbres de décision grâce au package tree. On obtient un
 classifieur avec **tree.DecisionTreeClassifier**.
-
 
 ```{python}
 from sklearn import tree
 ```
 
-2) Nous allons simuler avec la fonction `rand_checkers()` des échantillons de taille n = 456 :
-
 
 ```{python}
-#| label: fig1
-#| fig-cap: "Simulation d'échantillons avec randcheckers"
 #| code-fold: true
+#importer les librairies nécessaires
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,26 +58,30 @@ import seaborn as sns
 from matplotlib import rc
 import random
 from sklearn import tree, datasets
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 from tp_arbres_source import (rand_gauss, rand_bi_gauss, rand_tri_gauss,
                               rand_checkers, rand_clown,
                               plot_2d, frontiere)
-random.seed(1234) # to make code reproducible
+
+
+```
+
+2) Nous allons générer des échantillons de taille n = 456 en utilisant la fonction `rand_checkers()`, en veillant à maintenir un équilibre entre les classes :
+
+```{python}
+#| label: fig1
+#| fig-cap: "Simulation d'échantillons avec randcheckers"
+#| code-fold: true
+
+random.seed(1234)
 n1 = 114 
 n2 = 114
 n3 = 114
 n4 = 114
 sigma = 0.1
 data4 = rand_checkers(n1, n2, n3, n4, sigma)
-plot_2d(data4)
 
-```
-
-```{python}
-#| code-fold: true
-import matplotlib.pyplot as plt
-random.seed(1234)
-
-# Tracer les données
 plt.figure(figsize=(8, 8))
 plt.scatter(data4[:, 0], data4[:, 1], cmap='viridis', s=40)
 plt.title('Données générées avec la fonction rand_checkers')
@@ -68,14 +90,12 @@ plt.grid(True)
 plt.show()
 ```
 
-
+Nous allons à présent construire nos arbres de décision à l'aide des critères de l'entropie et l'indice de gini, avec l'attribu `criterion`:
 
 ```{python}
+
 dt_entropy = tree.DecisionTreeClassifier(criterion="gini")
 dt_gini = tree.DecisionTreeClassifier(criterion="entropy")
-
-# Effectuer la classification d'un jeu de données simulées avec rand_checkers des échantillons de
-# taille n = 456 (attention à bien équilibrer les classes)
 
 data = rand_checkers(n1=114, n2=114, n3=114, n4=114, sigma=0.1)
 n_samples = len(data)
@@ -95,21 +115,10 @@ print(dt_entropy.score(X, Y))
 
 ### Question 2
 
+Nous allons créer deux courbes illustrant l'évolution du pourcentage d'erreurs en fonction de la profondeur maximale de l'arbre, l'une pour le critère Gini et l'autre pour l'entropie:
+
 ```{python}
 #| code-fold: true
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-
-# Données simulées
-data = rand_checkers(n1=114, n2=114, n3=114, n4=114, sigma=0.1)
-X = data[:, :2]
-Y = data[:, 2].astype(int)
-
-# Créez un ensemble de test
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 dmax = 12
 scores_entropy = np.zeros(dmax)
@@ -121,33 +130,32 @@ best_score_entropy = 0.0
 best_depth_gini = None
 best_score_gini = 0.0
 
+
 plt.figure(figsize=(15, 10))
 for i in range(dmax):
-    # Arbre de décision avec critère Entropy
-    dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=i + 1, random_state=0)
-    dt_entropy.fit(X_train, Y_train)
-    Y_pred_entropy = dt_entropy.predict(X_test)
-    scores_entropy[i] = accuracy_score(Y_test, Y_pred_entropy)
-
+    # Arbre de décision avec le critère entropy
+    dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1, random_state = 0)
+    dt_entropy.fit(X, Y)
+    Y_pred_entropy = dt_entropy.predict(X)
+    scores_entropy[i] = accuracy_score(Y, Y_pred_entropy)
     if scores_entropy[i] > best_score_entropy:
         best_score_entropy = scores_entropy[i]
         best_depth_entropy = i + 1
-
-    # Arbre de décision avec critère Gini
-    dt_gini = DecisionTreeClassifier(criterion="gini", max_depth=i + 1, random_state=0)
-    dt_gini.fit(X_train, Y_train)
-    Y_pred_gini = dt_gini.predict(X_test)
-    scores_gini[i] = accuracy_score(Y_test, Y_pred_gini)
-
+        
+    # Arbre de décision avec le critère gini
+    dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i + 1, random_state = 0)
+    dt_gini.fit(X, Y)
+    Y_pred_gini = dt_gini.predict(X)
+    scores_gini[i] = accuracy_score(Y, Y_pred_gini)
     if scores_gini[i] > best_score_gini:
         best_score_gini = scores_gini[i]
-        best_depth_gini = i + 1
+    best_depth_gini = i + 1
 
     plt.subplot(3, 4, i + 1)
     frontiere(lambda x: dt_gini.predict(x.reshape((1, -1))), X, Y, step=50, samples=False)
-    plt.title(f'Depth {i + 1}')
-
+    plt.title(f'Depth{ i + 1 }')
 plt.draw()
+
 
 plt.figure()
 plt.plot(range(1, dmax + 1), 1 - scores_entropy, label="Accuracy score (Entropy)")
@@ -167,23 +175,29 @@ print("Best accuracy with Gini: ", best_score_gini)
 
 ### Question 3
 
+Nous allons présenter la classification obtenue en utilisant la profondeur qui minimise le pourcentage d'erreurs basées sur l'entropie, en utilisant les fonctions `plot_2d()` et `frontiere()` du fichier source :
+
 ```{python}
 #| code-fold: true
 random.seed(1234)
 # Créer un arbre de décision avec la meilleure profondeur pour l'entropie
-best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
-best_tree_entropy.fit(X_train, Y_train)
+best_tree_entropy = DecisionTreeClassifier(
+    criterion="entropy", max_depth=best_depth_entropy, random_state=0)
+best_tree_entropy.fit(X, Y)
 # Afficher la classification obtenue avec la profondeur optimale (Entropy)
 plt.figure(figsize=(8, 8))
-frontiere(lambda x: best_tree_entropy.predict(x.reshape((1, -1))), X_train, Y_train, step=50, samples=True)
-plt.xlabel('Caractéristique 1')
-plt.ylabel('Caractéristique 2')
-plt.title(f'Classification avec profondeur optimale ({best_depth_entropy} - Entropy)')
-plt.show()
+plt.figure()
+frontiere(lambda x: dt_entropy.predict(x.reshape((1, -1))), X, Y, step=100,
+          samples=True) 
+plt.title("Best frontier with entropy criterion")
+plt.draw()
+print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
 ```
 
 
 ### Question 4
+
+Nous allons générer un nouvel ensemble de données contenant n = 160 échantillons, répartis en 40 exemplaires de chaque classe à l'aide de la fonction `rand_checkers()`. Ensuite, nous évaluerons les arbres de décision préalablement entraînés en calculant la proportion d'erreurs commises sur cet échantillon de test:
 
 ```{python}
 #| code-fold: true
@@ -193,19 +207,20 @@ from sklearn.tree import export_graphviz
 import graphviz
 from graphviz import Source
 
-best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
-best_tree_entropy.fit(X_train, Y_train)
+#best_tree_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=best_depth_entropy, random_state=0)
+#best_tree_entropy.fit(X_train, Y_train)
 
-tree.export_graphviz(best_tree_entropy, out_file='tree.dot')
+#tree.export_graphviz(best_tree_entropy, out_file='tree.dot')
 ```
 
 
-
+COMMENTER ET REGLER PB D'EXPORTATION
 
 ### Question 5
 
 ```{python}
 #| code-fold: true
+
 # Créer un nouvel échantillon de test avec 160 données (40 de chaque classe)
 new_data = rand_checkers(n1=40, n2=40, n3=40, n4=40, sigma=0.1)
 
@@ -224,20 +239,191 @@ error_rate_gini = 1 - best_tree_gini.score(X_new, Y_new)
 print("Proportion d'erreurs sur le nouvel échantillon (Entropy): {:.2f}%".format(error_rate_entropy * 100))
 print("Proportion d'erreurs sur le nouvel échantillon (Gini): {:.2f}%".format(error_rate_gini * 100))
 
+dmax = 12
+scores_entropy = np.zeros(dmax)
+scores_gini = np.zeros(dmax)
+plt.figure(figsize=(15, 10))
+
+for i in range(dmax):
+    
+    # Créer un arbre de décision avec une profondeur maximale variable (entropy)
+    dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth=i + 1)
+    dt_entropy.fit(X_new, Y_new)
+    scores_entropy[i] = 1 - dt_entropy.score(X_new, Y_new)
+
+    dt_gini = DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
+    dt_gini.fit(X_new, Y_new)
+    scores_gini[i] = 1 - dt_gini.score(X_new, Y_new)
+    
+    plt.subplot(3, 4, i + 1)
+    frontiere(lambda x: dt_gini.predict(x.reshape((1, -1))), X_new, Y_new, step=50, samples=False)
+
+plt.figure()
+plt.plot(range(1, dmax + 1), scores_entropy, label="Entropy")
+plt.plot(range(1, dmax + 1), scores_gini, label="Gini")
+plt.xlabel('Max depth')
+plt.ylabel('Error Rate')
+plt.title("Testing error")
+plt.legend()
+plt.show()
+
+print("Proportion d'erreurs sur le nouvel échantillon (Entropy): {:.2f}%".format(error_rate_entropy * 100))
+print("Proportion d'erreurs sur le nouvel échantillon (Gini): {:.2f}%".format(error_rate_gini * 100))
+
 ```
 
 ### Question 6
 
 Nous allons reprendre ce qui a été fait précédement avec le dataset **DIGITS** :
 
+```{python}
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+# Import the digits dataset
+digits = datasets.load_digits()
+n_samples = len(digits.data)
 
+# Diviser l'ensemble de données en ensembles d'entraînement et de test (80% - 20%)
+
+digits.images.reshape((n_samples, -1))
+X_test = digits.data[:n_samples*8 // 10]  # digits.images.reshape((n_samples, -1))
+Y_test = digits.target[:n_samples*8 // 10]
+X_train = digits.data[n_samples*8 // 10:]
+Y_train = digits.target[n_samples*8 // 10:]
+
+dmax = 12
+scores_entropy = np.zeros(dmax)
+scores_gini = np.zeros(dmax)
+
+for i in range(dmax):
+    # Arbre de décision pour l'entropie
+    dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
+    dt_entropy.fit(X_train, Y_train)
+    scores_entropy = dt_entropy.score(X_train, Y_train)
+    
+    #Arbre de décision pour gini
+    dt_gini =  DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
+    dt_gini.fit(X_train, Y_train)
+    scores_entropy = dt_entropy.score(X_train, Y_train)
+    
+plt.figure()
+plt.plot(scores_entropy, label = "score entropy")
+plt.plot(scores_gini, label = "score gini")
+plt.legend()
+plt.xlabel("Max Depth")
+plt.ylabel("Accuracy score")
+plt.draw()
+
+# Pour dmax=16 par ex
+dmax = 16
+scores_entropy = np.zeros(dmax)
+scores_gini = np.zeros(dmax)
+
+for i in range(dmax):
+    dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
+    dt_entropy.fit(X_train,Y_train)
+    scores_entropy[i] = dt_entropy.score(X_test, Y_test)
+
+    dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i+1)
+    dt_gini.fit(X_train,Y_train)
+    scores_gini[i] = dt_gini.score(X_test,Y_test)
+
+
+plt.figure()
+plt.plot(scores_entropy, label="entropy")
+plt.plot(scores_gini, label="gini")
+plt.legend()
+plt.xlabel("Max Depth")
+plt.ylabel("Accuracy Score")
+plt.draw()
+print("Entropy criterion scores : ", scores_entropy)
+print("Gini criterion scores : ", scores_gini)
+```
 
 ### Question 7
 
 Utiliser la fonction `sklearn.cross_validation.cross_val_score()` et tester la sur le jeu de données
 **digits** en faisant varier la profondeur de l’arbre de décision. On pourra se servir de cette fonction
-pour choisir la profondeur de l’arbre.
+pour choisir la profondeur de l’arbre :
+
+```{python}
+from sklearn.model_selection import cross_val_score
+
+# Profondeurs maximales à tester
+max_depths = np.arange(1, 16, 1)
+
+# scores de validation croisée
+cv_scores = []
+
+# Tester chaque profondeur maximale
+for depth in max_depths:
+    # Initialiser et entraîner l'arbre de décision avec le critère d'Entropy
+    tree_classifier = DecisionTreeClassifier(criterion="entropy", max_depth=depth, random_state=0)
+    
+    # Effectuer une validation croisée avec 5 plis
+    scores = cross_val_score(tree_classifier, X, Y, cv=5)
+    
+    # Calculer la moyenne des scores de validation croisée
+    mean_score = scores.mean()
+    
+    # Ajouter le score moyen à la liste des scores
+    cv_scores.append(mean_score)
+
+# Trouver la meilleure profondeur maximale avec le score le plus élevé
+best_depth_index = cv_scores.index(max(cv_scores))
+best_depth = max_depths[best_depth_index]
+
+
+for depth, score in zip(max_depths, cv_scores):
+    print("Profondeur maximale = {}, Score de validation croisée moyen = {:.4f}".format(depth, score))
+    
+print("Meilleure profondeur maximale (Entropy) = {}, Score de validation croisée moyen = {:.4f}".format(best_depth, max(cv_scores)))
+```
 
 ### Question 8
+
+Nous allons afficher la courbe d’apprentissage (en : learning curve) pour les arbres de
+décisions sur le même jeu de données :
+
+```{python}
+from sklearn.model_selection import learning_curve
+from sklearn.model_selection import train_test_split
+
+# Charger l'ensemble de données digits
+digits = datasets.load_digits()
+X = digits.data
+Y = digits.target
+
+# Diviser l'ensemble de données en ensembles d'entraînement (80%) et de test (20%)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+# Créer un classificateur d'arbre de décision avec la meilleure profondeur
+dt = DecisionTreeClassifier(criterion='entropy', max_depth=best_depth)
+
+# Calculer la courbe d'apprentissage
+n_samples, train_scores, test_scores = learning_curve(dt, X_train, Y_train, cv=5)
+
+# Calculer les moyennes et les écarts types des scores
+train_scores_mean = np.mean(train_scores, axis=1)
+train_scores_std = np.std(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+test_scores_std = np.std(test_scores, axis=1)
+
+# Tracer la courbe d'apprentissage
+plt.figure()
+plt.grid()
+plt.fill_between(n_samples, train_scores_mean - 1.96 * train_scores_std,
+                 train_scores_mean + 1.96 * train_scores_std, alpha=0.1, label="Train")
+plt.fill_between(n_samples, test_scores_mean - 1.96 * test_scores_std,
+                 test_scores_mean + 1.96 * test_scores_std, alpha=0.1, label="Test")
+plt.plot(n_samples, train_scores_mean, 'o-', label="Score d'entraînement")
+plt.plot(n_samples, test_scores_mean, 'o-', label="Score de validation croisée")
+plt.legend(loc="lower right")
+plt.xlabel("Taille de l'échantillon d'entraînement")
+plt.ylabel("Accuracy")
+plt.title("Courbe d'apprentissage pour le meilleur arbre de décision")
+plt.show()
+```
+
 
 
