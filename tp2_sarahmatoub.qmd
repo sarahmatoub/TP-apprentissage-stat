@@ -388,6 +388,10 @@ for depth, score in zip(max_depths, cv_scores):
 print("Meilleure profondeur maximale (Entropy) = {}, Score de validation croisée moyen = {:.4f}".format(best_depth, max(cv_scores)))
 ```
 
+L'analyse de ces résultats révèle que lorsque la profondeur maximale atteint 12, les scores de validation croisée se stabilisent à 0.8146, ce qui représente le meilleur score possible. Ce qui signifie que la profondeur optimale pour cet ensemble de données est de 12. Au-delà de cette valeur, les scores de validation croisée semblent plafonner ou présenter une légère baisse, ce qui pourrait indiquer un surajustement du modèle aux données d'entraînement.
+
+Conclusion : pour le jeu de données **digits**, il est raisonnable de prendre une profondeur maximale de 12. Cette profondeur représente un compromis idéal entre la capacité du modèle à saisir la complexité des données et sa capacité à réaliser des prédictions précises sur de nouvelles données, ce qui contribue à obtenir la meilleure performance de prédiction.
+
 ### Question 8
 
 Nous allons afficher la courbe d’apprentissage (en : learning curve) pour les arbres de
