@@ -67,14 +67,14 @@ from tp_arbres_source import (rand_gauss, rand_bi_gauss, rand_tri_gauss,
 
 ```
 
-2) Nous allons générer des échantillons de taille n = 456 en utilisant la fonction `rand_checkers()`, en veillant à maintenir un équilibre entre les classes :
+2) Nous allons générer des échantillons de taille n = 456 en utilisant la fonction `rand_checkers()`, en veillant à maintenir un équilibre entre les classes, comme le montre la figure @fig1 :
 
 ```{python}
 #| label: fig1
 #| fig-cap: "Simulation d'échantillons avec randcheckers"
 #| code-fold: true
 
-random.seed(1234)
+random.seed(1)
 n1 = 114 
 n2 = 114
 n3 = 114
@@ -113,13 +113,18 @@ print(dt_entropy.get_params())
 print(dt_entropy.score(X, Y))
 ```
 
+Après avoir examiné les erreurs pour les indices de Gini et d'entropie sur les données d'entraînement, nous obtenons une valeur de 0 pour les deux. 
+Cela s'explique par le fait que les échantillons que nous utilisons pour les variables à prédire sont les mêmes que ceux que nous utilisons pour les observations. En conséquence, l'algorithme apprend de manière très précise à partir de cet échantillon. Il est possible que l'algorithme s'arrête automatiquement lorsque la valeur d'erreur atteint ce seuil de 0 (en l'occurrence, 1 dans le cas d'un score parfait), car il considère que la performance est optimale à ce stade.
+
 ### Question 2
 
 Nous allons créer deux courbes illustrant l'évolution du pourcentage d'erreurs en fonction de la profondeur maximale de l'arbre, l'une pour le critère Gini et l'autre pour l'entropie:
 
 ```{python}
+#| label: fig2
+#| fig-cap: "Evolution du pourcentage d'erreurs en fonction de la profondeur maximale"
 #| code-fold: true
-
+random.seed(1)
 dmax = 12
 scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
@@ -173,11 +178,18 @@ print("Best accuracy with Gini: ", best_score_gini)
 
 ```
 
+En observant la @fig2, il devient évident que plus la profondeur de l'arbre est grande, plus nous nous approchons d'une erreur de 0, dans cette illustration, nous avons utilisé une profondeur maximale de 12.
+En réalité, au-delà de cette valeur, l'erreur devient négligeable, voire inexistante. Cette tendance est clairement observable sur les courbes.
+
+Il est également important de noter qu'en utilisant un arbre avec une profondeur faible, l'erreur est considérablement élevée. Cela est dû au fait que, dans des cas où les données sont bien réparties et où l'on ne peut effectuer qu'une seule coupe, nous obtenons deux classes extrêmement hétérogènes.
+
 ### Question 3
 
 Nous allons présenter la classification obtenue en utilisant la profondeur qui minimise le pourcentage d'erreurs basées sur l'entropie, en utilisant les fonctions `plot_2d()` et `frontiere()` du fichier source :
 
 ```{python}
+#| label: fig3
+#| fig-cap: "Classification obtenue avec la meilleur profondeur"
 #| code-fold: true
 random.seed(1234)
 # Créer un arbre de décision avec la meilleure profondeur pour l'entropie
@@ -194,11 +206,12 @@ plt.draw()
 print("Best scores with entropy criterion: ", dt_entropy.score(X, Y))
 ```
 
+On voit que la plupart des données d'apprentissage sont correctement classées, ce qui témoigne d'une bonne performance globale du modèle. Cependant, il est important de noter que les frontières de décision obtenues sont assez complexes. Ceci est principalement dû au fait qu'une profondeur maximale élevée signifie que nous autorisons une découpe très fine de l'espace, ce qui peut conduire à des frontières de décision complexes et détaillées.
 
 ### Question 4
 
 Nous allons utiliser la fonction `export_graphviz()` du module `tree` pour exporter le graphique de l'arbre obtenu dans la question précédente au format PDF. 
-Le fichier exporté sera nommé *best_tree_entropy.pdf* et sera enregistré dans le dossier **Plots** du dépôt Git de ce TP :
+
 
 ```{python}
 #| code-fold: true
@@ -220,6 +233,14 @@ graph = graphviz.Source(donnes)
 graph.render("best_tree_entropy", format = "pdf")
 ```
 
+Le fichier exporté sera nommé *best_tree_entropy.pdf* et sera enregistré dans le dossier **Plots** du dépôt Git de ce TP.
+
+La lecture d'un arbre de décision est assez intuitive et suit un schéma hiérarchique.
+Il commence par un noeud appelé "la racine" , qui représente le tout premier point de décision de l'arbre. À partir de la racine, il y a généralement deux noeuds enfants. Chaque noeud qui n'est pas une feuille a lui-même deux noeuds enfants, et cela se répète jusqu'à ce que nous atteignions les noeuds terminaux, également appelés "feuilles", où les décisions sont prises.
+
+La manière de lire un arbre de décision est la suivante : 
+
+- Si la condition spécifiée au niveau d'un noeud est satisfaite pour une observation donnée, nous suivons la branche de gauche de ce noeud. En revanche, si la condition n'est pas satisfaite, nous empruntons la branche de droite. En suivant ces branches de noeud en noeud, de la racine aux feuilles, nous finissons par atteindre une feuille qui indique la décision ou la prédiction finale basée sur les conditions remplies par l'observation.
 
 ### Question 5
 
@@ -228,6 +249,7 @@ Nous allons générer un nouvel ensemble de données contenant n = 160 échantil
 ```{python}
 #| code-fold: true
 # Créer un nouvel échantillon de test avec 160 données (40 de chaque classe)
+random.seed(1)
 new_data = rand_checkers(n1=40, n2=40, n3=40, n4=40, sigma=0.1)
 
 # Séparer les caractéristiques et les étiquettes
@@ -286,19 +308,19 @@ Nous allons reprendre ce qui a été fait précédement avec le dataset **DIGITS
 
 ```{python}
 #| code-fold: true
+#| label: fig4
+#| fig-cap: "Pourcentage d'erreur en fonction de la profondeur maximale sur les données d'entrainement"
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 # Import the digits dataset
 digits = datasets.load_digits()
-n_samples = len(digits.data)
 
+n_samples = len(digits.data)
+d = digits.images.reshape((n_samples, -1))
 # Diviser l'ensemble de données en ensembles d'entraînement et de test (80% - 20%)
 
-digits.images.reshape((n_samples, -1))
-X_test = digits.data[:n_samples*8 // 10]  # digits.images.reshape((n_samples, -1))
-Y_test = digits.target[:n_samples*8 // 10]
-X_train = digits.data[n_samples*8 // 10:]
-Y_train = digits.target[n_samples*8 // 10:]
+X_train, X_test, Y_train, Y_test = train_test_split(d,
+digits.target, test_size = 0.2, shuffle=False)
 
 dmax = 12
 scores_entropy = np.zeros(dmax)
@@ -308,12 +330,12 @@ for i in range(dmax):
     # Arbre de décision pour l'entropie
     dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
     dt_entropy.fit(X_train, Y_train)
-    scores_entropy = dt_entropy.score(X_train, Y_train)
+    scores_entropy[i] = 1 - dt_entropy.score(X_train, Y_train)
     
     #Arbre de décision pour gini
     dt_gini =  DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
     dt_gini.fit(X_train, Y_train)
-    scores_entropy = dt_entropy.score(X_train, Y_train)
+    scores_gini[i] = 1 - dt_gini.score(X_train, Y_train)
     
 plt.figure()
 plt.plot(scores_entropy, label = "score entropy")
@@ -322,20 +344,28 @@ plt.legend()
 plt.xlabel("Max Depth")
 plt.ylabel("Accuracy score")
 plt.draw()
+```
 
-# Pour dmax=16 par ex
-dmax = 16
+La figure @fig4 montre que le taux d'erreurs sur les données d'apprentissage diminue à mesure que la profondeur de l'arbre augmente. Il atteint finalement 0 % au-delà d'un certain seuil de profondeur dans les deux cas.
+
+Evaluons maintenant la performance des arbres de décision préalablement entraînés en calculant la proportion d'erreurs qu'ils commettent sur l'échantillon de test :
+
+```{python}
+#| code-fold: true
+#| label: fig5
+#| fig-cap: "Pourcentage d'erreur en fonction de la profondeur maximale sur les données de test"
+dmax = 12
 scores_entropy = np.zeros(dmax)
 scores_gini = np.zeros(dmax)
 
 for i in range(dmax):
     dt_entropy = tree.DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
     dt_entropy.fit(X_train,Y_train)
-    scores_entropy[i] = dt_entropy.score(X_test, Y_test)
+    scores_entropy[i] = 1 - dt_entropy.score(X_test, Y_test)
 
     dt_gini = tree.DecisionTreeClassifier(criterion="gini", max_depth = i+1)
     dt_gini.fit(X_train,Y_train)
-    scores_gini[i] = dt_gini.score(X_test,Y_test)
+    scores_gini[i] = 1 - dt_gini.score(X_test,Y_test)
 
 
 plt.figure()
@@ -347,6 +377,17 @@ plt.ylabel("Accuracy Score")
 plt.draw()
 print("Entropy criterion scores : ", scores_entropy)
 print("Gini criterion scores : ", scores_gini)
+```
+
+En analysant la figure @fig5, nous constatons que le taux d'erreurs diminue jusqu'à une certaine profondeur, après quoi il commence à augmenter légèrement. Contrairement aux données d'apprentissage, le taux d'erreurs sur l'échantillon de test ne semble pas converger vers 0, il persiste toujours des erreurs de prédiction.
+
+Nous allons exporter le graphique de l'arbre obtenu comme nous l'avions fait à la question 4.
+
+```{python}
+#| output: false
+dot_data2 = tree.export_graphviz(dt_entropy, out_file=None)
+graph = graphviz.Source(dot_data2)
+graph.render("Plots\Arbre_question6", format="pdf")
 ```
 
 ### Question 7
@@ -394,11 +435,12 @@ Conclusion : pour le jeu de données **digits**, il est raisonnable de prendre u
 
 ### Question 8
 
-Nous allons afficher la courbe d’apprentissage (en : learning curve) pour les arbres de
-décisions sur le même jeu de données :
+Nous allons afficher la courbe d’apprentissage (en : learning curve) pour les arbres de décisions sur le même jeu de données :
 
 ```{python}
 #| code-fold: true
+#| label: "fig6"
+#| fig-cap: "Courbe d'apprentissage pour le meilleur arbre de décision"
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import train_test_split
 
@@ -437,6 +479,12 @@ plt.ylabel("Accuracy")
 plt.title("Courbe d'apprentissage pour le meilleur arbre de décision")
 plt.show()
 ```
+
+À la lecture de la figure @fig6, il est évident que le modèle d'arbre de décision atteint un score d'entraînement parfait de 1, ce qui signifie qu'il peut ajuster de manière précise les données d'entraînement, mais cela soulève la possibilité de surajustement. En revanche, le score de validation croisée est compris entre 0.8 et 0.9, ce qui est encourageant et suggère que le modèle généralise bien sur des données inconnues. Cependant, le fait que le score de validation croisée n'atteigne pas 1 indique qu'il subsiste une variabilité naturelle dans les données. Globalement, la figure révèle un équilibre entre l'ajustement aux données d'entraînement et la capacité à généraliser, mais il convient de surveiller la complexité du modèle pour éviter un surajustement excessif.
+
+
+
+
 
 
 

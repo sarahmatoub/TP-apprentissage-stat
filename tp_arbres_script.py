@@ -298,12 +298,12 @@ for i in range(dmax):
     # Arbre de décision pour l'entropie
     dt_entropy = DecisionTreeClassifier(criterion="entropy", max_depth = i + 1)
     dt_entropy.fit(X_train, Y_train)
-    scores_entropy = dt_entropy.score(X_train, Y_train)
+    scores_entropy[i] = 1 - dt_entropy.score(X_train, Y_train)
     
     #Arbre de décision pour gini
     dt_gini =  DecisionTreeClassifier(criterion="gini", max_depth = i + 1)
     dt_gini.fit(X_train, Y_train)
-    scores_entropy = dt_entropy.score(X_train, Y_train)
+    scores_gini[i] = 1 - dt_gini.score(X_train, Y_train)
     
 plt.figure()
 plt.plot(scores_entropy, label = "score entropy")
